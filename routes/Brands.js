@@ -1,13 +1,10 @@
 const express = require("express");
 
-const productController = require("../Controller/Brand");
+const brandController = require("../controller/Brand");
 const router = express.Router();
 
 router
-  .post("/", productController.createBrand)
-//   .get("/", productController.fetchAllProducts)
-//   .get("/:id", productController.fetchProductBy)
-//   .patch("/:id", productController.updateProduct)
-//   .delete("/:id", productController.deleteProduct);
+  .post("/", brandController.createBrand)
+  .get("/", brandController.fetchBrands)
 
   exports.router=router
