@@ -36,6 +36,10 @@ exports.fetchAllProducts = async (req, res) => {
     query = query.sort({ [req.query._sort]: req.query._order });
     // [rating:"asc"]
   }
+
+  const totalDocs = await totalProductQuery.countDocuments().exec();
+  console.log({ totalDocs });
+
   //Pagination
   if (req.query._page && req.query._per_page) {
     const pageSize = req.query._per_page;
@@ -43,13 +47,12 @@ exports.fetchAllProducts = async (req, res) => {
     query = query.skip(pageSize * (page - 1)).limit(pageSize);
   }
 
-  const totalDocs = await totalProductQuery.countDocuments().exec();
-  console.log({ totalDocs });
-
+ 
   try {
-    const doc = await query.exec();
+    const docs = await query.exec();
+    
     res.set("X-Total-Count",totalDocs)
-    res.status(200).json(doc);
+    res.status(200).json(docs);
   } catch (err) {
     console.error({ err });
     res.status(400).json(err);
