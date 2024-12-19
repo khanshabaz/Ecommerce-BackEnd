@@ -5,6 +5,8 @@ const productsRouter=require("./routes/Products")
 const brandsRouter=require("./routes/Brands")
 const categoriesRouter=require("./routes/Categories")
 const authRouter=require("./routes/Auth")
+const userRouter=require("./routes/Users")
+const cartRouter=require("./routes/Carts")
 const cors = require('cors')
 //middlewares
 
@@ -16,6 +18,8 @@ server.use('/products',productsRouter.router)
 server.use('/brands',brandsRouter.router)
 server.use('/categories',categoriesRouter.router)
 server.use('/auth',authRouter.router)
+server.use('/users',userRouter.router)
+server.use('/cart',cartRouter.router)
 
 
 main().catch(err => console.log(err));
@@ -29,6 +33,6 @@ server.get('/',(req,res)=>{
     res.json({status:"Success"})
 })
 
-server.listen(3001,()=>{
+server.listen(3000,()=>{
     console.log("Server Started");
 })

@@ -61,7 +61,7 @@ exports.fetchAllProducts = async (req, res) => {
 
 
 
-exports.fetchProductBy = async (req, res) => {
+exports.fetchProductById = async (req, res) => {
  const {id}=req.params
   try {
     const product = await Product.findById(id);
