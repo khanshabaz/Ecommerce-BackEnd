@@ -7,6 +7,7 @@ const categoriesRouter=require("./routes/Categories")
 const authRouter=require("./routes/Auth")
 const userRouter=require("./routes/Users")
 const cartRouter=require("./routes/Carts")
+const orderRouter=require("./routes/Orders")
 const cors = require('cors')
 //middlewares
 
@@ -20,7 +21,7 @@ server.use('/categories',categoriesRouter.router)
 server.use('/auth',authRouter.router)
 server.use('/users',userRouter.router)
 server.use('/cart',cartRouter.router)
-
+server.use('/orders',orderRouter.router)
 
 main().catch(err => console.log(err));
 

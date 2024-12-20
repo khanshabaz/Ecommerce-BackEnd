@@ -5,6 +5,6 @@ const router = express.Router();
 
 router
   .get("/:id", userController.fetchUserById)
-  // .post("/login", authController.loginUser)
+  .patch("/:id", userController.updateUser)
 
   exports.router=router
