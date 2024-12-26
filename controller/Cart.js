@@ -14,7 +14,7 @@ exports.fetchCartByUser = async (req, res) => {
 
  exports.addToCart = async (req, res) => {
     const cart = new Cart(req.body);
-    console.log(req.body);
+   
     try {
       const doc = await cart.save();
       const result= await doc.populate('product');

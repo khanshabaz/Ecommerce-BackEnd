@@ -14,8 +14,15 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.fetchAllProducts = async (req, res) => {
-  let query = Product.find({});
-  let totalProductQuery = Product.find({});
+
+  let condition = {}
+  console.log(req.query.admin)
+  if(!req.query.admin){
+      condition.deleted = {$ne:true}
+  }
+  console.log(condition)
+  let query = Product.find(condition);
+  let totalProductQuery = Product.find(condition);
 
   //Filter-Category
   if (req.query.category) {
@@ -32,11 +39,10 @@ exports.fetchAllProducts = async (req, res) => {
 
   //TODO:How to get sort on discounted Price not on actual price
   //Sorting
-  if (req.query._sort && req.query._order) {
-    query = query.sort({ [req.query._sort]: req.query._order });
-    // [rating:"asc"]
-  }
 
+  if (req.query._sort && req.query._order ) {
+    query = query.sort({[req.query._sort]:req.query._order});
+  }
   const totalDocs = await totalProductQuery.countDocuments().exec();
   console.log({ totalDocs });
 
@@ -50,7 +56,6 @@ exports.fetchAllProducts = async (req, res) => {
  
   try {
     const docs = await query.exec();
-    
     res.set("X-Total-Count",totalDocs)
     res.status(200).json(docs);
   } catch (err) {
