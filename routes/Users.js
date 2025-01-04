@@ -4,7 +4,7 @@ const userController = require("../controller/User");
 const router = express.Router();
 
 router
-  .get("/:id", userController.fetchUserById)
+  .get("/own", userController.fetchUserById)
   .patch("/:id", userController.updateUser)
 
   exports.router=router

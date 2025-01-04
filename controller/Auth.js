@@ -1,7 +1,16 @@
 const model = require("../model/User");
 const User = model.User;
-const crypto=require("crypto");
-const { sanitizerUser } = require("../services/common");
+const crypto = require("crypto");
+const  ExtractJwt = require('passport-jwt').ExtractJwt;
+const { sanitizerUser, cookieExtractor, sendMail } = require("../services/common");
+const SECRET_KEY="SECRET_KEY"
+//JWT Options
+const opts = {}
+opts.jwtFromRequest = cookieExtractor;
+opts.secretOrKey = SECRET_KEY;
+
+const jwt=require("jsonwebtoken")
+
 
 exports.createUser = async (req, res) => {
   try {
@@ -13,15 +22,18 @@ exports.createUser = async (req, res) => {
       32,
       "sha256",
       async function (err, hashedPassword) {
-        const user=new User({...req.body,password:hashedPassword,salt})
-        const doc=await user.save()
-        req.login(sanitizerUser(doc),(err)=>{// this also calls serializer and adds to session
-          if(err){
+        const user = new User({ ...req.body, password: hashedPassword, salt });
+        const doc = await user.save();
+        req.login(sanitizerUser(doc), (err) => {
+          // this also calls serializer and adds to session
+          if (err) {
             res.status(400).json(err);
-          }else{
-            res.status(200).json(sanitizerUser(doc));
+          } else {
+            const token = jwt.sign(sanitizerUser(doc), SECRET_KEY);
+            res.cookie('jwt', token, { expires: new Date(Date.now() + 3600000), httpOnly: true }).json({id:doc.id,role:doc.role});
+
           }
-        })
+        });
       }
     );
   } catch (err) {
@@ -31,9 +43,32 @@ exports.createUser = async (req, res) => {
 };
 
 exports.loginUser = async (req, res) => {
-  res.json(req.user);
+  res
+  .cookie('jwt', req.user.token, {
+    expires: new Date(Date.now() + 3600000),
+    httpOnly: true,
+  })
+  .status(201)
+  .json(req.user.token);
 };
 
-exports.checkUser = async (req, res) => {
-  res.json({ status: "Success", user: req.user });
+exports.checkAuth= async (req, res) => {
+ if(req.user){
+  res.json(req.user);
+ }else{
+  res.sendStatus(401)
+ }
 };
+
+exports.reserPasswordRequest= async (req, res) => {
+  const resetPage="http://localhost:5173/reset-password"//Reset Password Component link
+  const subject="reset password for e-commerce"
+  const html=`<p>Click <a href='${resetPage}'>here</a> to Reset Password`
+  if(req.body.email){
+    const response=await sendMail({to:req.body.email,subject,html})
+   res.send(response);
+  }else{
+   res.sendStatus(401)
+  }
+ };
+ 

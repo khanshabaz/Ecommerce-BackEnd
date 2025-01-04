@@ -1,11 +1,14 @@
 const express = require("express");
 const server = express();
+require('dotenv').config();
+
 const crypto=require("crypto")
 const {User} = require("./model/User");
 const jwt=require("jsonwebtoken")
 const mongoose = require("mongoose");
+
 const JwtStrategy = require('passport-jwt').Strategy;
-const  ExtractJwt = require('passport-jwt').ExtractJwt;
+const cookieParser=require('cookie-parser');
 const productsRouter = require("./routes/Products");
 const brandsRouter = require("./routes/Brands");
 const categoriesRouter = require("./routes/Categories");
@@ -17,18 +20,20 @@ const cors = require("cors");
 const LocalStrategy = require("passport-local").Strategy;
 const passport = require("passport");
 const session = require("express-session");
-const { isAuth, sanitizerUser } = require("./services/common");
+const { isAuth, sanitizerUser, cookieExtractor } = require("./services/common");
 
 
 const SECRET_KEY="SECRET_KEY"
 //JWT Options
 const opts = {}
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY;
 
+//nodemailer 
 
 //middlewares
-
+server.use(express.static('dist'))
+server.use(cookieParser())
 
 server.use(session({
   secret: 'keyboard cat',
@@ -46,20 +51,23 @@ server.use(
 
 
 server.use(express.json())
-server.use("/products",isAuth, productsRouter.router);
-server.use("/brands",isAuth, brandsRouter.router);
-server.use("/categories",isAuth,  categoriesRouter.router);
+server.use("/products",isAuth(), productsRouter.router);
+server.use("/brands",isAuth(), brandsRouter.router);
+server.use("/categories",isAuth(),  categoriesRouter.router);
 server.use("/auth", authRouter.router);
-server.use("/users",isAuth,  userRouter.router);
-server.use("/cart", isAuth, cartRouter.router);
-server.use("/orders",isAuth,  orderRouter.router);
+server.use("/users",isAuth(),  userRouter.router);
+server.use("/cart", isAuth(), cartRouter.router);
+server.use("/orders",isAuth(),  orderRouter.router);
+
+
 
 passport.use(
   "local",
-  new LocalStrategy(async function (username, password, done) {
+  new LocalStrategy( {usernameField:'email'},async function (email, password, done) {
+   
     //by default passport uses username
     try {
-      const user = await User.findOne({ email: username });
+      const user = await User.findOne({ email: email });
   
       if (!user) {
         done(null,false,{message:"Invalid Credentials"})//response
@@ -75,7 +83,7 @@ passport.use(
                 return done(null,false,{message:"Invalid Credentials"})//response
               }
               const token=jwt.sign(sanitizerUser(user),SECRET_KEY);
-              done(null,token)
+              done(null,{id:user.id,role:user.role})
             }
           );
     } catch (err) {
@@ -85,8 +93,9 @@ passport.use(
 );
 
 passport.use("jwt",new JwtStrategy(opts, async function(jwt_payload, done) {
+  console.log(jwt_payload)
   try{
-    const user = await User.findOne({id: jwt_payload.sub});
+    const user = await User.findById(jwt_payload.id);
       if (user) {
           return done(null, sanitizerUser(user));
       } else {
