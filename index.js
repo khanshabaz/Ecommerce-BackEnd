@@ -1,12 +1,11 @@
 const express = require("express");
 const server = express();
 require('dotenv').config();
-
 const crypto=require("crypto")
 const {User} = require("./model/User");
 const jwt=require("jsonwebtoken")
 const mongoose = require("mongoose");
-
+const path=require("path")
 const JwtStrategy = require('passport-jwt').Strategy;
 const cookieParser=require('cookie-parser');
 const productsRouter = require("./routes/Products");
@@ -23,20 +22,19 @@ const session = require("express-session");
 const { isAuth, sanitizerUser, cookieExtractor } = require("./services/common");
 
 
-const SECRET_KEY="SECRET_KEY"
 //JWT Options
 const opts = {}
 opts.jwtFromRequest = cookieExtractor;
-opts.secretOrKey = SECRET_KEY;
+opts.secretOrKey = process.env.SECRET_KEY;
 
 //nodemailer 
 
 //middlewares
-server.use(express.static('dist'))
+server.use(express.static(path.resolve(__dirname, 'dist')))
 server.use(cookieParser())
 
 server.use(session({
-  secret: 'keyboard cat',
+  secret: process.env.SESSION_KEY,
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
 }));
@@ -59,7 +57,9 @@ server.use("/users",isAuth(),  userRouter.router);
 server.use("/cart", isAuth(), cartRouter.router);
 server.use("/orders",isAuth(),  orderRouter.router);
 
-
+server.get('*', (req, res) =>
+  res.sendFile(path.resolve('dist', 'index.html'))
+);
 
 passport.use(
   "local",
@@ -82,8 +82,9 @@ passport.use(
               if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
                 return done(null,false,{message:"Invalid Credentials"})//response
               }
-              const token=jwt.sign(sanitizerUser(user),SECRET_KEY);
-              done(null,{id:user.id,role:user.role})
+              const token=jwt.sign(sanitizerUser(user),process.env.SECRET_KEY);
+              console.log(token)
+              done(null,{id:user.id,role:user.role, token})
             }
           );
     } catch (err) {
@@ -93,7 +94,6 @@ passport.use(
 );
 
 passport.use("jwt",new JwtStrategy(opts, async function(jwt_payload, done) {
-  console.log(jwt_payload)
   try{
     const user = await User.findById(jwt_payload.id);
       if (user) {

@@ -1,5 +1,9 @@
 const model = require("../model/Order");
+const { Product } = require("../model/Product");
 const Order = model.Order;
+const {User} = require("../model/User");
+const { sendMail, invoiceTemplate } = require("../services/common");
+
 
 exports.fetchOrderByUser = async (req, res) => {
   const {id}=req.user;
@@ -14,9 +18,15 @@ exports.fetchOrderByUser = async (req, res) => {
 
  exports.createOrder = async (req, res) => {
     const order = new Order(req.body);
-  
+  for(let item of order.items){
+    let product=await Product.findOne({_id:item.product.id});
+    product.$inc("stock",-1*item.quantity);
+    await product.save();
+  }
     try {
       const doc = await order.save();
+      const user = await User.findById(order.user);
+      sendMail({to:user.email,html:invoiceTemplate(order),subject:"Order Received"})
       res.status(201).json(doc);
     } catch (err) {
       console.error({ err });
@@ -25,16 +35,7 @@ exports.fetchOrderByUser = async (req, res) => {
   };
 
   
-// exports.deleteFromCart = async (req, res) => {
-//     const {id}=req.params
-//      try {
-//        const doc = await Cart.findByIdAndDelete(id);
-//        res.status(200).json(doc);
-//      } catch (err) {
-//        console.error({ err });
-//        res.status(400).json(err);
-//      }
-//    };
+
 
 
    exports.updateOrder = async (req, res) => {

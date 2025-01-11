@@ -7,7 +7,6 @@ exports.fetchUserById = async (req, res) => {
      const user = await User.findById(id);
      res.status(200).json({id:user.id,addresses:user.addresses,email:user.email,role:user.role});
    } catch (err) {
-     console.error({ err });
      res.status(400).json(err);
    }
  };
@@ -17,7 +16,6 @@ exports.fetchUserById = async (req, res) => {
      const user = await User.findByIdAndUpdate(id,req.body,{new:true});
      res.status(200).json(user);
    } catch (err) {
-     console.error({ err });
      res.status(400).json(err);
    }
  };

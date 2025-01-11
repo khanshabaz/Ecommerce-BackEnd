@@ -6,9 +6,9 @@ const userSchema = new Schema({
   role:{ type: String, required: true ,default:"user"},
   addresses:{ type: [Schema.Types.Mixed]},
   name:{type:String},
-  orders:{type: [Schema.Types.Mixed]},
-  salt:Buffer
-});
+  salt:Buffer,
+  resetPasswordToken: {type: String, default:''}
+},{ timestamps: true });
 
 const virtual = userSchema.virtual("id");
 virtual.get(function () {

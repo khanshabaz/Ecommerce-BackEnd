@@ -11,6 +11,7 @@ const productSchema = new Schema({
     brand: {type:String, required:true},
     images:{type:[String], required:true},
     thumbnail:{type:String, required:true},
+    discountPrice:{type:Number},
     deleted:{type:Boolean,default:false}
   });
 
