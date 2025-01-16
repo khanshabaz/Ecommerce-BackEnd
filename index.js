@@ -15,6 +15,7 @@ const authRouter = require("./routes/Auth");
 const userRouter = require("./routes/Users");
 const cartRouter = require("./routes/Carts");
 const orderRouter = require("./routes/Orders");
+const paymentRouter=require("./routes/payment");
 const cors = require("cors");
 const LocalStrategy = require("passport-local").Strategy;
 const passport = require("passport");
@@ -56,6 +57,7 @@ server.use("/auth", authRouter.router);
 server.use("/users",isAuth(),  userRouter.router);
 server.use("/cart", isAuth(), cartRouter.router);
 server.use("/orders",isAuth(),  orderRouter.router);
+server.use("/payment",isAuth(),  paymentRouter.router);
 
 server.get('*', (req, res) =>
   res.sendFile(path.resolve('dist', 'index.html'))
